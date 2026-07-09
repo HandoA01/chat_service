@@ -23,3 +23,6 @@ bin/
 # 환경 변수 / 민감 정보
 .env
 application-secret.properties
+
+# DB 접속정보 (비밀번호 포함)
+src/main/resources/application.properties

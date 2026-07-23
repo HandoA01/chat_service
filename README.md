@@ -233,10 +233,7 @@ erDiagram
   - 서버가 여러 대면 사용자가 어느 서버 소켓에 붙었는지도 추적해야 한다 → Redis Pub/Sub으로 서버 간 전파.
   - 즉 presence는 영속 데이터(RDB)가 아니라 **휘발성 캐시로 분리**하는 게 설계 판단.
 - **참고 자료**
-  - [채널톡 실시간 채팅 서버 개선 여정 — Redis Pub/Sub](https://channel.io/ko/blog/real-time-chat-server-1-redis-pub-sub)
-  - [PWA 환경에서 푸시 알림 구현하기 (Spring Boot, FCM, Redis)](https://headf1rst.github.io/TIL/push-notification)
-  - [FCM으로 대량 푸시 알림 빨리 보내기](https://velog.io/@koomin1227/FCM-%EC%9C%BC%EB%A1%9C-%EB%8C%80%EB%9F%89-%ED%91%B8%EC%8B%9C-%EC%95%8C%EB%A6%BC-%EB%B9%A8%EB%A6%AC-%EB%B3%B4%EB%82%B4%EA%B8%B0)
-  - [Amazon ElastiCache(Redis)로 채팅 애플리케이션 구성하기](https://aws.amazon.com/ko/blogs/korea/how-to-build-a-chat-application-with-amazon-elasticache-for-redis/)
+
 
 ### 고민 ② 무한히 쌓이는 메시지 테이블의 조회·페이징 성능
 
@@ -246,7 +243,4 @@ erDiagram
   - 정렬·조회에 필요한 컬럼만 인덱스에 담아 테이블 접근을 줄이는 **커버링 인덱스** `(room_id, id DESC)`.
   - 테이블 자체가 너무 커지면 `created_at` 기준 **월 단위 레인지 파티셔닝**으로 조회 범위를 좁힌다.
 - **참고 자료**
-  - [MySQL 페이징 성능 개선 (커서/NoOffset 방식)](https://velog.io/@ddongh1122/MySQL-%ED%8E%98%EC%9D%B4%EC%A7%95-%EC%84%B1%EB%8A%A5-%EA%B0%9C%EC%84%A0)
-  - [커버링 인덱스를 통한 조회 성능 개선](https://tjdtls690.github.io/studycontents/java/2023-11-05-covering_index/)
-  - [MySQL Partition 파티션 — 정의와 기능](https://hoing.io/archives/7909)
-  - [MySQL 인덱스 성능 개선 — 커버링 인덱스](https://velog.io/@rnjsrntkd95/MySQL-%EC%9D%B8%EB%8D%B1%EC%8A%A4-%EC%84%B1%EB%8A%A5-%EA%B0%9C%EC%84%A0%ED%95%98%EA%B8%B0-%EC%BB%A4%EB%B2%84%EB%A7%81-%EC%9D%B8%EB%8D%B1%EC%8A%A4)
+

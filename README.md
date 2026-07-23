@@ -233,7 +233,9 @@ erDiagram
   - 서버가 여러 대면 사용자가 어느 서버 소켓에 붙었는지도 추적해야 한다 → Redis Pub/Sub으로 서버 간 전파.
   - 즉 presence는 영속 데이터(RDB)가 아니라 **휘발성 캐시로 분리**하는 게 설계 판단.
 - **참고 자료**
-
+https://wishlee0204.tistory.com/438
+https://s200928.tistory.com/2
+https://whitemackerel.tistory.com/110 이건 대용령 푸쉬 관련
 
 ### 고민 ② 무한히 쌓이는 메시지 테이블의 조회·페이징 성능
 
@@ -243,4 +245,6 @@ erDiagram
   - 정렬·조회에 필요한 컬럼만 인덱스에 담아 테이블 접근을 줄이는 **커버링 인덱스** `(room_id, id DESC)`.
   - 테이블 자체가 너무 커지면 `created_at` 기준 **월 단위 레인지 파티셔닝**으로 조회 범위를 좁힌다.
 - **참고 자료**
-
+https://chanho0912.tistory.com/110
+https://velog.io/@rnjsrntkd95/MySQL-%EC%9D%B8%EB%8D%B1%EC%8A%A4-%EC%84%B1%EB%8A%A5-%EA%B0%9C%EC%84%A0%ED%95%98%EA%B8%B0-%EC%BB%A4%EB%B2%84%EB%A7%81-%EC%9D%B8%EB%8D%B1%EC%8A%A4
+https://lold2424.tistory.com/225

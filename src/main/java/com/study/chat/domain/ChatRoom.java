@@ -2,6 +2,7 @@ package com.study.chat.domain;
 
 import com.study.chat.domain.base.BaseEntity;
 import com.study.chat.domain.enums.RoomType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,7 +10,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,4 +38,12 @@ public class ChatRoom extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private RoomType type;
+
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ChatParticipant> participants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ChatMessage> messages = new ArrayList<>();
 }

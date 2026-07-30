@@ -9,7 +9,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,4 +50,8 @@ public class User extends BaseEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private UserStatus status = UserStatus.ACTIVE;
+
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<ChatParticipant> participants = new ArrayList<>();
 }

@@ -4,6 +4,7 @@ import com.study.chat.apiPayload.ApiResponse;
 import com.study.chat.apiPayload.code.ErrorReasonDTO;
 import com.study.chat.apiPayload.code.status.ErrorStatus;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,11 +32,32 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<Object> validation(ConstraintViolationException e, WebRequest request) {
         String errorMessage = e.getConstraintViolations().stream()
-                .map(constraintViolation -> constraintViolation.getMessage())
+                .map(ConstraintViolation::getMessage)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("ConstraintViolationException 추출 도중 에러 발생"));
+                .orElse("");
 
-        return handleExceptionInternalConstraint(e, ErrorStatus.valueOf(errorMessage), HttpHeaders.EMPTY, request);
+        // 커스텀 어노테이션이 심은 ErrorStatus 이름이면 그 도메인 에러로 응답한다.
+        // 표준 어노테이션(@NotBlank 등)은 사람이 읽는 문구를 담고 있어 enum으로 해석되지 않는다.
+        // 예전에는 무조건 valueOf를 호출해서, 표준 메시지가 오면 IllegalArgumentException이
+        // 핸들러 안에서 터지고 예외가 필터 체인까지 올라가 엉뚱하게 401로 응답됐다.
+        Optional<ErrorStatus> domainError = toErrorStatus(errorMessage);
+        if (domainError.isPresent()) {
+            return handleExceptionInternalConstraint(e, domainError.get(), HttpHeaders.EMPTY, request);
+        }
+
+        Map<String, String> errors = new LinkedHashMap<>();
+        e.getConstraintViolations().forEach(violation ->
+                errors.merge(lastNodeOf(violation), violation.getMessage(),
+                        (existing, added) -> existing + ", " + added));
+
+        return handleExceptionInternalArgs(e, HttpHeaders.EMPTY, ErrorStatus._BAD_REQUEST, request, errors);
+    }
+
+    /** "search.keyword" 처럼 메서드명이 앞에 붙으므로 마지막 노드(파라미터명)만 남긴다. */
+    private String lastNodeOf(ConstraintViolation<?> violation) {
+        String path = violation.getPropertyPath().toString();
+        int lastDot = path.lastIndexOf('.');
+        return lastDot < 0 ? path : path.substring(lastDot + 1);
     }
 
     /**

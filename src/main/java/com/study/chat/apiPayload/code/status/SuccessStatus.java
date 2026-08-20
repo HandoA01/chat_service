@@ -16,9 +16,19 @@ public enum SuccessStatus implements BaseCode {
 
     // 회원 관련 응답
     USER_JOINED(HttpStatus.CREATED, "USER201", "회원가입에 성공했습니다."),
+    USER_LOGIN_OK(HttpStatus.OK, "USER200", "로그인에 성공했습니다."),
+    USER_PROFILE_OK(HttpStatus.OK, "USER2001", "프로필 조회에 성공했습니다."),
+    USER_PROFILE_UPDATED(HttpStatus.OK, "USER2002", "프로필 수정에 성공했습니다."),
+    USER_SEARCH_OK(HttpStatus.OK, "USER2003", "유저 검색에 성공했습니다."),
 
     // 친구 관련 응답
     FRIEND_REQUESTED(HttpStatus.CREATED, "FRIEND201", "친구 요청을 보냈습니다."),
+    FRIEND_ACCEPTED(HttpStatus.OK, "FRIEND200", "친구 요청을 수락했습니다."),
+    FRIEND_LIST_OK(HttpStatus.OK, "FRIEND2001", "친구 목록 조회에 성공했습니다."),
+
+    // 메시지 관련 응답
+    ROOM_CREATED(HttpStatus.CREATED, "ROOM201", "채팅방을 생성했습니다."),
+    ROOM_LIST_OK(HttpStatus.OK, "ROOM200", "채팅방 목록 조회에 성공했습니다."),
 
     // 메시지 관련 응답
     MESSAGE_PAGE_OK(HttpStatus.OK, "MESSAGE200", "채팅 내역 조회에 성공했습니다."),

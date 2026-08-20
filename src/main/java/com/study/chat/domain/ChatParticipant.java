@@ -49,4 +49,8 @@ public class ChatParticipant extends BaseEntity {
 
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
+
+    public void updateLastReadMessage(Long messageId) {
+        this.lastReadMessageId = messageId;
+    }
 }

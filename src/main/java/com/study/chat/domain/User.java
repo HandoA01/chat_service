@@ -54,4 +54,20 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<ChatParticipant> participants = new ArrayList<>();
+
+    /**
+     * 부분 수정(PATCH)이라 null인 필드는 건드리지 않는다.
+     * @Setter를 열지 않고 의미 있는 메서드로만 변경을 허용한다.
+     */
+    public void updateProfile(String nickname, String profileImageUrl, String statusMessage) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
+        if (statusMessage != null) {
+            this.statusMessage = statusMessage;
+        }
+    }
 }

@@ -1,9 +1,10 @@
 -- 로컬 개발/검증용 시드 데이터 (H2 인메모리, 매 기동 시 재생성)
+-- 시드 회원 3명의 비밀번호는 모두 password1234 (BCrypt 인코딩된 값)
 
 INSERT INTO users (id, email, password, nickname, status, created_at, updated_at) VALUES
-  (1, 'hong@example.com', '{noop}seed', '홍길동', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (2, 'kim@example.com',  '{noop}seed', '김철수', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (3, 'lee@example.com',  '{noop}seed', '이영희', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  (1, 'hong@example.com', '$2a$10$N1YDQSWhBbS7L9ksIdDh3e6LijF2GLcROX3R2gkobVfOn5GPq06i6', '홍길동', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  (2, 'kim@example.com',  '$2a$10$N1YDQSWhBbS7L9ksIdDh3e6LijF2GLcROX3R2gkobVfOn5GPq06i6', '김철수', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  (3, 'lee@example.com',  '$2a$10$N1YDQSWhBbS7L9ksIdDh3e6LijF2GLcROX3R2gkobVfOn5GPq06i6', '이영희', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO chat_rooms (id, title, type, created_at, updated_at) VALUES
   (100, '스프링 스터디', 'GROUP', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

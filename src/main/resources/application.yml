@@ -22,3 +22,7 @@ spring:
 logging:
   level:
     org.hibernate.SQL: debug
+jwt:
+  # 로컬 개발용 기본값. 운영에서는 환경변수로 주입한다.
+  secret: ${JWT_SECRET:local-dev-secret-key-please-change-in-production-32bytes-min}
+  expiration-seconds: 3600

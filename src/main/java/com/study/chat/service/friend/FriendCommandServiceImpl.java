@@ -36,4 +36,21 @@ public class FriendCommandServiceImpl implements FriendCommandService {
 
         return friendRepository.save(FriendConverter.toFriend(user, friend));
     }
+
+    @Override
+    public Friend acceptFriend(Long userId, Long requestId) {
+        Friend friendship = friendRepository.findById(requestId)
+                .orElseThrow(() -> new FriendHandler(ErrorStatus.FRIEND_NOT_FOUND));
+
+        // 요청을 받은 쪽(friend_id)만 수락할 수 있다. 보낸 사람이 스스로 수락하면 안 된다.
+        if (!friendship.getFriend().getId().equals(userId)) {
+            throw new FriendHandler(ErrorStatus.FRIEND_NOT_RECEIVER);
+        }
+        if (friendship.isAccepted()) {
+            throw new FriendHandler(ErrorStatus.FRIEND_ALREADY_ACCEPTED);
+        }
+
+        friendship.accept();
+        return friendship;
+    }
 }

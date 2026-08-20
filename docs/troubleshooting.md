@@ -281,3 +281,73 @@ done
 
 불일치가 나오면 파일을 다시 쓰고 재스테이징한다.
 근본 원인 쪽은 디스크 정리와, 편집 중인 파일을 붙잡고 있는 에디터 탭을 닫는 것으로 대응.
+
+---
+
+## No.8 — `@RequestParam` 검증 실패가 401로 둔갑함
+
+**`이슈`**
+
+👉 유저 검색 API에 검색어를 비우고 호출했더니, 400이 아니라 **401 Unauthorized**가 나왔다.
+토큰은 정상이었고, 같은 토큰으로 다른 API는 잘 되는 상황이었다.
+
+```json
+{ "isSuccess": false, "code": "COMMON401", "message": "인증이 필요합니다." }
+```
+
+서버 로그에는 인증과 무관한 예외가 찍혀 있었다.
+
+```
+ConstraintViolationException: search.keyword: 검색어는 필수입니다.
+  at ...ExceptionTranslationFilter.doFilter(...)
+```
+
+**`문제`**
+
+`ExceptionAdvice`의 `ConstraintViolationException` 핸들러가 이렇게 돼 있었다.
+
+```java
+return handleExceptionInternalConstraint(e, ErrorStatus.valueOf(errorMessage), ...);
+```
+
+**모든 위반 메시지가 `ErrorStatus`의 enum 이름이라고 가정**한 코드다.
+커스텀 어노테이션(`@CheckPage` 등)은 실제로 enum 이름을 심으니 문제가 없었는데,
+표준 어노테이션인 `@NotBlank(message = "검색어는 필수입니다.")`는 사람이 읽는 문구를 담는다.
+
+그 문구로 `valueOf`를 호출하니 **핸들러 안에서 `IllegalArgumentException`이 터졌다.**
+예외를 처리하려던 핸들러가 스스로 예외를 던진 것이라, 응답이 만들어지지 못하고
+예외가 서블릿 밖 필터 체인까지 올라갔다. 거기서 Spring Security의
+`ExceptionTranslationFilter`를 지나며 인증 문제로 오인되어 401로 응답됐다.
+
+**증상(401)과 원인(검증 실패)이 전혀 달라서** 토큰을 계속 의심하느라 시간을 썼다.
+
+**`해결`**
+
+enum으로 해석되는 경우와 아닌 경우를 나눴다.
+
+```java
+Optional<ErrorStatus> domainError = toErrorStatus(errorMessage);
+if (domainError.isPresent()) {
+    return handleExceptionInternalConstraint(e, domainError.get(), HttpHeaders.EMPTY, request);
+}
+
+// 표준 어노테이션 메시지는 필드별 맵으로 그대로 내려준다
+Map<String, String> errors = new LinkedHashMap<>();
+e.getConstraintViolations().forEach(violation ->
+        errors.merge(lastNodeOf(violation), violation.getMessage(), ...));
+return handleExceptionInternalArgs(e, HttpHeaders.EMPTY, ErrorStatus._BAD_REQUEST, request, errors);
+```
+
+`propertyPath`가 `search.keyword`처럼 메서드명까지 포함하므로 마지막 노드만 잘라 필드명으로 썼다.
+
+결과:
+
+```json
+{ "isSuccess": false, "code": "COMMON400", "message": "잘못된 요청입니다.",
+  "result": { "keyword": "검색어는 필수입니다." } }      // 400
+```
+
+**배운 것**: **예외 핸들러 자신이 예외를 던지면 안 된다.**
+핸들러가 실패하면 그 뒤에 무슨 응답이 나갈지 통제할 수 없고,
+이번처럼 원인과 전혀 다른 상태 코드가 나가 디버깅을 방해한다.
+`valueOf`처럼 실패 가능한 변환은 핸들러 안에서 반드시 감싸야 한다.

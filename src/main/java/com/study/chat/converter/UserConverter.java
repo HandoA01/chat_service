@@ -25,4 +25,44 @@ public class UserConverter {
                 .createdAt(user.getCreatedAt())
                 .build();
     }
+
+    public static UserResponseDTO.SummaryDTO toSummaryDTO(User user) {
+        return UserResponseDTO.SummaryDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .build();
+    }
+
+    public static UserResponseDTO.LoginResultDTO toLoginResultDTO(User user, String accessToken, long expiresIn) {
+        return UserResponseDTO.LoginResultDTO.builder()
+                .accessToken(accessToken)
+                .tokenType("Bearer")
+                .expiresIn(expiresIn)
+                .user(toSummaryDTO(user))
+                .build();
+    }
+
+    public static UserResponseDTO.ProfileDTO toProfileDTO(User user) {
+        return UserResponseDTO.ProfileDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImageUrl())
+                .statusMessage(user.getStatusMessage())
+                .status(user.getStatus())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+    }
+
+    public static UserResponseDTO.SearchResultDTO toSearchResultDTO(User user) {
+        return UserResponseDTO.SearchResultDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImageUrl())
+                .statusMessage(user.getStatusMessage())
+                .build();
+    }
 }

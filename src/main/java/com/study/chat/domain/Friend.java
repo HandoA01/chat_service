@@ -50,4 +50,12 @@ public class Friend extends BaseEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private FriendStatus status = FriendStatus.PENDING;
+
+    public void accept() {
+        this.status = FriendStatus.ACCEPTED;
+    }
+
+    public boolean isAccepted() {
+        return this.status == FriendStatus.ACCEPTED;
+    }
 }

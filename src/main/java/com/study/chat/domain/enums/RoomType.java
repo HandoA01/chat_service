@@ -1,5 +1,5 @@
 package com.study.chat.domain.enums;
 
 public enum RoomType {
-    SINGLE, GROUP
+    SINGLE, GROUP, OPEN
 }

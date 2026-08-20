@@ -629,6 +629,17 @@ HTTP 상태 코드만으로는 "400인 건 알겠는데 정확히 뭐가 잘못�
 
 **응답 body (200)**
 
+메시지는 조인 상속(`chat_messages` 부모 + `text/emoji/media_messages` 자식)으로 저장되므로,
+`type`에 따라 채워지는 필드가 다르다. 해당 없는 필드는 응답에서 아예 생략된다.
+
+| type | 추가로 내려가는 필드 |
+| --- | --- |
+| `TEXT` | `content` |
+| `EMOJI` | `emoticonId`, `emoticonImageUrl` |
+| `MEDIA` | `fileUrl`, `fileType`(IMAGE/VIDEO/FILE/AUDIO), `thumbnailUrl` |
+
+답장인 경우에만 `parentMessageId`가 함께 내려간다.
+
 ```json
 {
   "messages": [
@@ -637,7 +648,10 @@ HTTP 상태 코드만으로는 "400인 건 알겠는데 정확히 뭐가 잘못�
       "roomId": 100,
       "senderId": 2,
       "senderNickname": "김철수",
-      "content": "회의는 3시에 시작합니다.",
+      "type": "MEDIA",
+      "fileUrl": "https://cdn.example.com/files/study.png",
+      "fileType": "IMAGE",
+      "thumbnailUrl": "https://cdn.example.com/files/study_thumb.png",
       "createdAt": "2026-07-09T14:20:00"
     },
     {
@@ -645,7 +659,9 @@ HTTP 상태 코드만으로는 "400인 건 알겠는데 정확히 뭐가 잘못�
       "roomId": 100,
       "senderId": 1,
       "senderNickname": "홍길동",
+      "type": "TEXT",
       "content": "네 알겠습니다.",
+      "parentMessageId": 5019,
       "createdAt": "2026-07-09T14:19:30"
     }
   ],

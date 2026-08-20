@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,4 +47,10 @@ public class ChatRoom extends BaseEntity {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ChatMessage> messages = new ArrayList<>();
+
+    /**
+     * type이 OPEN일 때만 존재하는 오픈채팅 전용 정보. 그 외 방에서는 null이다.
+     */
+    @OneToOne(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private OpenChatRoom openChatRoom;
 }

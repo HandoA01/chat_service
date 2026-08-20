@@ -56,7 +56,26 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
                             (existingErrorMessage, newErrorMessage) -> existingErrorMessage + ", " + newErrorMessage);
                 });
 
+        // 커스텀 어노테이션이 심어둔 ErrorStatus 이름이 섞여 있으면 그 도메인 에러로 응답한다.
+        // 그대로 두면 enum 이름이 그대로 노출되고 code도 COMMON400으로 뭉개진다.
+        Optional<ErrorStatus> domainError = errors.values().stream()
+                .map(this::toErrorStatus)
+                .flatMap(Optional::stream)
+                .findFirst();
+
+        if (domainError.isPresent()) {
+            return handleExceptionInternalConstraint(e, domainError.get(), HttpHeaders.EMPTY, request);
+        }
+
         return handleExceptionInternalArgs(e, HttpHeaders.EMPTY, ErrorStatus._BAD_REQUEST, request, errors);
+    }
+
+    private Optional<ErrorStatus> toErrorStatus(String message) {
+        try {
+            return Optional.of(ErrorStatus.valueOf(message));
+        } catch (IllegalArgumentException notAnErrorStatusName) {
+            return Optional.empty();
+        }
     }
 
     @ExceptionHandler

@@ -351,3 +351,87 @@ return handleExceptionInternalArgs(e, HttpHeaders.EMPTY, ErrorStatus._BAD_REQUES
 핸들러가 실패하면 그 뒤에 무슨 응답이 나갈지 통제할 수 없고,
 이번처럼 원인과 전혀 다른 상태 코드가 나가 디버깅을 방해한다.
 `valueOf`처럼 실패 가능한 변환은 핸들러 안에서 반드시 감싸야 한다.
+
+---
+
+## No.9 — STOMP 통합 테스트에서 메시지를 못 받음 (서버는 정상이었음)
+
+**`이슈`**
+
+👉 WebSocket 메시지 전송을 통합 테스트로 검증하는데, 구독한 큐에 아무것도 안 들어왔다.
+서버 로그에는 에러가 없었고, `insert` 쿼리도 안 보여서 **핸들러가 아예 실행되지 않았다고 판단**했다.
+
+**`문제`**
+
+`org.springframework.messaging`을 TRACE로 켜고 프레임을 따라가 보니 서버는 **전부 정상**이었다.
+
+```
+Processing CONNECT user=hong@example.com          ← 인증 성공
+Processing SUBSCRIBE /sub/chat-rooms/100          ← 구독 등록
+Searching methods to handle SEND ... lookupDestination='/chat-rooms/100/messages'
+Processing MESSAGE destination=/sub/chat-rooms/100 payload={"id":5006,...}
+Received MESSAGE ... payload={"id":5006,"type":"EMOJI"...}   ← 클라이언트도 수신함
+```
+
+메시지는 저장됐고(id 5006) 브로드캐스트됐고 **클라이언트까지 도착**했는데,
+`StompFrameHandler.handleFrame`이 큐에 넣지 못하고 있었다.
+
+원인은 **역직렬화 실패**였다. 수신 타입을 `MessagePreviewDTO.class`로 지정했는데,
+이 응답 DTO에는 `@Getter`만 있고 setter가 없다. Jackson이 값을 넣을 방법이 없어
+변환 단계에서 조용히 실패한 것이다.
+
+앞서 `insert` 쿼리가 안 보였던 건 테스트 프로파일에서 `show-sql: false`로 꺼둔 탓이었고,
+그걸 근거로 "핸들러 미실행"이라고 잘못 짚어 한참을 엉뚱한 데서 찾았다.
+
+**`해결`**
+
+응답 DTO에 setter를 여는 대신, **테스트가 `Map`으로 받도록** 고쳤다.
+
+```java
+@Override
+public Type getPayloadType(StompHeaders headers) {
+    return Map.class;
+}
+```
+
+DTO를 불변에 가깝게 유지하는 게 맞고, 실제 클라이언트(JS)도 JSON을 그대로 읽으므로
+`Map` 검증이 실제 사용과 더 가깝다. **테스트 편의를 위해 프로덕션 설계를 무르지 않는다.**
+
+덤으로 얻은 것: 원인을 찾는 과정에서 서버가 에러를 개인 큐로 보내는 걸 확인하려고
+`/user/sub/errors`도 함께 구독했는데, 이게 이후 실패 원인을 바로 드러내 주는
+진단 장치가 되어 테스트에 그대로 남겼다.
+
+**배운 것**: 로그가 "없다"는 건 "일어나지 않았다"와 다르다.
+로그 레벨을 확인하기 전에 미실행이라고 단정하면 안 된다.
+
+---
+
+## No.10 — 테스트가 `NoClassDefFoundError ...$3`으로 무더기 실패
+
+**`이슈`**
+
+👉 테스트 파일을 통째로 다시 쓴 뒤 실행했더니 6개가 한꺼번에 같은 예외로 죽었다.
+
+```
+java.lang.NoClassDefFoundError: com/study/chat/websocket/ChatStompIntegrationTest$3
+```
+
+`$3`은 익명 클래스(익명 `StompFrameHandler`)를 가리킨다.
+
+**`문제`**
+
+Gradle이 `compileTestJava`를 `UP-TO-DATE`로 판단해 다시 컴파일하지 않았다.
+그런데 파일을 새로 쓰면서 익명 클래스의 **개수와 번호가 바뀌었고**,
+`build/classes`에는 이전 버전의 `$1`, `$2`만 남아 있어 `$3`을 찾지 못했다.
+
+이 환경에서 Gradle 캐시가 `resourceHashesCache.bin is corrupt. Discarding.` 경고를
+반복해서 내고 있었던 것과 무관하지 않아 보인다. 변경 감지가 정상이었다면
+다시 컴파일됐어야 한다.
+
+**`해결`**
+
+`./gradlew clean test`로 빌드 산출물을 지우고 다시 컴파일하니 7개 전부 통과했다.
+
+**배운 것**: 익명 클래스는 소스 순서로 `$1`, `$2` … 번호가 매겨진다.
+파일을 크게 고친 뒤 `NoClassDefFoundError $숫자`가 뜨면 코드 문제가 아니라
+**빌드 산출물이 낡은 것**을 먼저 의심하는 게 빠르다.

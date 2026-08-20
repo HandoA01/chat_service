@@ -49,6 +49,20 @@ type을 @DiscriminatorColumn으로 삼아, TextMessage / EmojiMessage / MediaMes
 OpenChatRoom은 @MapsId로 chat_room_id를 PK이자 FK로 쓴다.
 오픈채팅에만 있는 방장/정원/입장코드를 chat_rooms에 두면 일반 방에서 전부 빈 값이 된다.
 
+### 쓰기 경로
+
+ChatMessageCommandService가 요청의 type에 따라 어떤 자식 엔티티로 만들지 분기한다.
+
+- TEXT  -> TextMessage (content 필수)
+- EMOJI -> EmojiMessage (emoticonId 필수 + user_emoticons로 소유 검증)
+- MEDIA -> MediaMessage (fileUrl, fileType 필수)
+
+이모티콘은 emoticons에 존재하는지만 보지 않고, 그 팩을 실제로 보유했는지
+user_emoticons로 확인한다. 조인 테이블을 소유권 검증의 근거로 쓰기로 한 설계 그대로다.
+
+답장은 parentMessageId가 같은 방의 메시지인지 확인한다.
+다른 방 메시지를 가리키면 대화 맥락이 깨지기 때문이다.
+
 ### 상속 매핑에서 실제로 걸린 것
 
 조회 결과를 DTO로 바꿀 때 instanceof로 자식 타입을 분기했는데, 답장 대상으로 먼저
@@ -65,5 +79,5 @@ users 조회가 더 나갔다(N+1). ChatMessageRepository에 @EntityGraph(attrib
 ChatParticipant.joinedAt이 BaseEntity.createdAt과 겹친다.
 재입장 시각을 따로 기록할 게 아니면 하나로 합치는 게 맞다.
 
-메시지 전송/채팅방 생성 API가 아직 없어서, 상속 매핑은 조회 경로로만 검증했다.
-쓰기 경로(어떤 자식 타입으로 저장할지 분기)는 API를 만들 때 함께 봐야 한다.
+ChatParticipant는 나갈 때 행을 삭제한다. 재입장 이력을 남길 거라면
+상태값으로 바꾸는 편이 맞는데, 아직 재입장 요구사항이 없어 그대로 뒀다.

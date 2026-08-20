@@ -733,7 +733,7 @@ destination:/sub/chat-rooms/100
 | --- | --- |
 | `/pub/chat-rooms/{roomId}/messages` | 특정 채팅방으로 메시지를 전송 |
 
-**발행 payload 예시**
+**발행 payload 예시 (텍스트)**
 
 ```json
 {
@@ -742,6 +742,45 @@ destination:/sub/chat-rooms/100
 ```
 
 > 발신자(senderId)는 서버가 STOMP 세션의 인증 정보(JWT)에서 추출하므로 payload에 포함하지 않습니다.
+
+`type`을 생략하면 `TEXT`로 처리합니다. 메시지는 조인 상속으로 저장되므로
+`type`에 따라 필요한 필드가 다릅니다.
+
+| type | 필수 필드 | 선택 필드 |
+| --- | --- | --- |
+| `TEXT` (기본) | `content` | — |
+| `EMOJI` | `emoticonId` | — |
+| `MEDIA` | `fileUrl`, `fileType` | `fileSize`, `thumbnailUrl` |
+
+모든 종류에서 `parentMessageId`를 넣으면 답장이 됩니다. (같은 방의 메시지여야 함)
+
+**발행 payload 예시 (이모티콘 · 답장)**
+
+```json
+{
+  "type": "EMOJI",
+  "emoticonId": 20,
+  "parentMessageId": 5020
+}
+```
+
+**발행 실패 시**
+
+STOMP에는 HTTP 상태 코드가 없으므로, 에러는 **발신자 개인 큐**(`/user/sub/errors`)로만
+전달되고 구독자 전체에게 브로드캐스트되지 않습니다. 본문 형식은 REST와 동일합니다.
+
+```json
+{ "isSuccess": false, "code": "MESSAGE4004", "message": "텍스트 메시지는 본문이 필요합니다." }
+```
+
+| 코드 | 설명 |
+| --- | --- |
+| `ROOM4002` | 참여하지 않은 채팅방 |
+| `MESSAGE4004` | TEXT인데 본문 없음 |
+| `MESSAGE4005` | EMOJI인데 emoticonId 없음 |
+| `MESSAGE4006` | MEDIA인데 fileUrl/fileType 없음 |
+| `MESSAGE4007` | 보유하지 않은 이모티콘 |
+| `MESSAGE4008` | 답장 대상이 다른 방의 메시지 |
 
 ### 5.4 수신 메시지 payload 예시
 
@@ -753,10 +792,14 @@ destination:/sub/chat-rooms/100
   "roomId": 100,
   "senderId": 1,
   "senderNickname": "홍길동",
+  "type": "TEXT",
   "content": "안녕하세요! 회의 준비 되셨나요?",
   "createdAt": "2026-07-09T14:25:00"
 }
 ```
+
+형식은 `GET /api/chat-rooms/{roomId}/messages`의 목록 항목과 동일합니다.
+`type`에 따라 채워지는 필드가 다르고, 해당 없는 필드는 생략됩니다.
 
 ### 5.5 동작 흐름
 

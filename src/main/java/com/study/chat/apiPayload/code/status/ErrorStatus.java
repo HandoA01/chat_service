@@ -48,6 +48,12 @@ public enum ErrorStatus implements BaseErrorCode {
     MESSAGE_PAGE_INVALID(HttpStatus.BAD_REQUEST, "MESSAGE4002", "페이지 번호는 1 이상이어야 합니다."),
     MESSAGE_SIZE_INVALID(HttpStatus.BAD_REQUEST, "MESSAGE4003", "페이지 크기는 1 이상 100 이하여야 합니다."),
     MESSAGE_KEYWORD_REQUIRED(HttpStatus.BAD_REQUEST, "USER4006", "검색어는 필수입니다."),
+    MESSAGE_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "MESSAGE4004", "텍스트 메시지는 본문이 필요합니다."),
+    MESSAGE_EMOTICON_REQUIRED(HttpStatus.BAD_REQUEST, "MESSAGE4005", "이모티콘 메시지는 emoticonId가 필요합니다."),
+    MESSAGE_FILE_REQUIRED(HttpStatus.BAD_REQUEST, "MESSAGE4006", "미디어 메시지는 fileUrl과 fileType이 필요합니다."),
+    MESSAGE_EMOTICON_NOT_OWNED(HttpStatus.FORBIDDEN, "MESSAGE4007", "보유하지 않은 이모티콘입니다."),
+    MESSAGE_PARENT_NOT_IN_ROOM(HttpStatus.BAD_REQUEST, "MESSAGE4008", "답장 대상이 같은 채팅방의 메시지가 아닙니다."),
+    EMOTICON_NOT_FOUND(HttpStatus.NOT_FOUND, "EMOTICON4001", "해당 이모티콘을 찾을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

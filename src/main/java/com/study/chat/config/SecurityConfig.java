@@ -35,7 +35,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()
                         .requestMatchers("/h2-console/**", "/temp/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
+                        // STOMP는 CONNECT 프레임에서 별도로 JWT를 검증한다 (StompAuthChannelInterceptor)
+                        .requestMatchers("/ws-stomp/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 인증 실패도 공통 응답 규격으로 내려준다.

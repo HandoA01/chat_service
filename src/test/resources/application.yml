@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:chatdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+    show-sql: false
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.springframework.messaging: trace
+    org.springframework.web.socket: debug
+jwt:
+  secret: local-dev-secret-key-please-change-in-production-32bytes-min
+  expiration-seconds: 3600
